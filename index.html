@@ -2,60 +2,33 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Formulaire Google Sheet</title>
-  <style>
-    #message { margin-top: 15px; font-weight: bold; }
-    .success { color: green; }
-    .error { color: red; }
-    .loading { color: blue; }
-  </style>
+  <title>Formulaire Google Sheets</title>
 </head>
 <body>
-  <h2>Enregistrement</h2>
-  <form id="dataForm">
-    <label>Nom : <input type="text" name="nom" required></label><br><br>
-    <label>Prénom : <input type="text" name="prenom" required></label><br><br>
-    <label>Somme (€) : <input type="number" name="somme" required></label><br><br>
-    <button type="submit">Envoyer</button>
+  <h2>Enregistrement dans Google Sheets</h2>
+  
+  <form action="https://script.google.com/macros/s/AKfycbwPvFvtRMIsWvroN9ouIw6Z9xs2Xe84vvpcGuU52ej1KNjfA0EOWMRWGmqgGFnzEhA-pw/exec" 
+        method="POST" 
+        target="hidden_iframe"
+        onsubmit="document.getElementById('msg').innerText='⏳ Envoi en cours...';">
+
+    <label for="nom">Nom :</label><br>
+    <input type="text" id="nom" name="nom" required><br><br>
+
+    <label for="prenom">Prénom :</label><br>
+    <input type="text" id="prenom" name="prenom" required><br><br>
+
+    <label for="somme">Somme :</label><br>
+    <input type="number" id="somme" name="somme" required><br><br>
+
+    <button type="submit">Enregistrer</button>
   </form>
 
-  <p id="message"></p>
+  <p id="msg"></p>
 
-  <script>
-    const URL_WEBAPP = "https://script.google.com/macros/s/AKfycbxkZxd-8hPTaiW4Xl-iAlFoYBNuZ7p6VybHFHKQYsGJscW9MNi2S0KWzHu9Nyp3AJQhYg/exec";
-
-    document.getElementById("dataForm").addEventListener("submit", async function(e){
-      e.preventDefault();
-      const msg = document.getElementById("message");
-      msg.innerText = "⏳ Envoi en cours...";
-      msg.className = "loading";
-
-      const formData = new FormData(this);
-      const data = Object.fromEntries(formData.entries());
-
-      try {
-        const response = await fetch(URL_WEBAPP, {
-          method: "POST",
-          body: JSON.stringify(data),
-          headers: {"Content-Type": "application/json"}
-        });
-
-        const result = await response.json();
-
-        if(result.status === "success"){
-          msg.innerText = result.message;
-          msg.className = "success";
-          this.reset();
-        } else {
-          msg.innerText = result.message;
-          msg.className = "error";
-        }
-
-      } catch (err) {
-        msg.innerText = "❌ Erreur de connexion au serveur : " + err.message;
-        msg.className = "error";
-      }
-    });
-  </script>
+  <!-- Iframe caché qui reçoit la réponse -->
+  <iframe name="hidden_iframe" style="display:none;" 
+          onload="document.getElementById('msg').innerText='✅ Données enregistrées avec succès !';">
+  </iframe>
 </body>
 </html>
