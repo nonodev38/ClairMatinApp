@@ -3,6 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <title>Formulaire Google Sheets</title>
+  <style>
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; cursor: pointer; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #f4f4f4; }
+    tr.selected { background-color: #d0ebff; }
+    #search { margin-top: 20px; padding: 5px; width: 50%; }
+    #actions { margin-top: 15px; display: none; }
+    button { margin-right: 10px; padding: 6px 12px; border: none; border-radius: 5px; cursor: pointer; }
+    .total { background-color: #4CAF50; color: white; }
+    .edit { background-color: #FF9800; color: white; }
+    .delete { background-color: #F44336; color: white; }
+  </style>
 </head>
 <body>
   <h2>Enregistrement dans Google Sheets</h2>
@@ -25,10 +37,99 @@
   </form>
 
   <p id="msg"></p>
-
-  <!-- Iframe caché qui reçoit la réponse -->
   <iframe name="hidden_iframe" style="display:none;" 
-          onload="document.getElementById('msg').innerText='✅ Données enregistrées avec succès !';">
+          onload="document.getElementById('msg').innerText='✅ Données enregistrées avec succès !'; loadData();">
   </iframe>
+
+  <!-- Zone de recherche -->
+  <h3>Liste des enregistrements</h3>
+  <input type="text" id="search" placeholder="Rechercher par nom ou prénom...">
+
+  <!-- Tableau -->
+  <table id="dataTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nom</th>
+        <th>Prénom</th>
+        <th>Somme</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <!-- Boutons actions -->
+  <div id="actions">
+    <button class="total" onclick="showTotal()">Somme totale</button>
+    <button class="edit" onclick="editRow()">Modifier</button>
+    <button class="delete" onclick="deleteRow()">Supprimer</button>
+  </div>
+
+  <script>
+    const URL_GET = "https://script.google.com/macros/s/AKfycbwmERez42TxieQWWvs01jPpClvPfs756ooqRV10TnT02NebHrh0h0NFZw9Jbatvo_vlZA/exec";
+    let allData = [];
+    let selectedRow = null;
+
+    async function loadData() {
+      try {
+        const res = await fetch(URL_GET);
+        const data = await res.json();
+        allData = data;
+        renderTable(data);
+
+        document.getElementById("search").addEventListener("input", function() {
+          const term = this.value.toLowerCase();
+          const filtered = allData.filter(row =>
+            row.Nom.toLowerCase().includes(term) ||
+            row.Prénom.toLowerCase().includes(term)
+          );
+          renderTable(filtered);
+        });
+      } catch (err) {
+        console.error("Erreur chargement :", err);
+      }
+    }
+
+    function renderTable(rows) {
+      const tbody = document.querySelector("#dataTable tbody");
+      tbody.innerHTML = "";
+      rows.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.ID}</td>
+          <td>${row.Nom}</td>
+          <td>${row.Prénom}</td>
+          <td>${row.Somme}</td>
+        `;
+        tr.onclick = () => selectRow(tr, row);
+        tbody.appendChild(tr);
+      });
+    }
+
+    function selectRow(tr, row) {
+      // enlever sélection précédente
+      document.querySelectorAll("#dataTable tr").forEach(r => r.classList.remove("selected"));
+      tr.classList.add("selected");
+      selectedRow = row;
+      document.getElementById("actions").style.display = "block";
+    }
+
+    function showTotal() {
+      if (!selectedRow) return;
+      alert("Somme totale = " + selectedRow.Somme);
+    }
+
+    function editRow() {
+      if (!selectedRow) return;
+      alert("⚠️ Fonction Modifier à implémenter. Ligne sélectionnée : ID " + selectedRow.ID);
+    }
+
+    function deleteRow() {
+      if (!selectedRow) return;
+      alert("⚠️ Fonction Supprimer à implémenter. Ligne sélectionnée : ID " + selectedRow.ID);
+    }
+
+    loadData();
+  </script>
 </body>
 </html>
